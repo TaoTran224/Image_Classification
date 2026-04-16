@@ -33,20 +33,21 @@ namespace Image_Classification
             this.Classify = new System.Windows.Forms.TabPage();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.Training = new System.Windows.Forms.TabPage();
+            this.Txt_TrainingStatus = new System.Windows.Forms.TextBox();
+            this.Txt_ConvertStatus = new System.Windows.Forms.TextBox();
             this.Txt_DirOutput = new System.Windows.Forms.TextBox();
             this.Txt_DirInput = new System.Windows.Forms.TextBox();
-            this.label2 = new System.Windows.Forms.Label();
-            this.label1 = new System.Windows.Forms.Label();
             this.Btn_Output = new System.Windows.Forms.Button();
             this.Btn_SelectInput = new System.Windows.Forms.Button();
             this.Btn_Convert = new System.Windows.Forms.Button();
-            this.Btn_SelectTrainingFolder = new System.Windows.Forms.Button();
+            this.Btn_SelectClassify = new System.Windows.Forms.Button();
             this.Btn_Training = new System.Windows.Forms.Button();
-            this.Txt_ConvertStatus = new System.Windows.Forms.TextBox();
-            this.Convert_TrainingStatus = new System.Windows.Forms.TextBox();
+            this.pictureBoxInput = new System.Windows.Forms.PictureBox();
+            this.Lbl_ResultClassify = new System.Windows.Forms.Label();
             this.Classify.SuspendLayout();
             this.tabControl1.SuspendLayout();
             this.Training.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBoxInput)).BeginInit();
             this.SuspendLayout();
             // 
             // Btn_SelectImage
@@ -81,16 +82,16 @@ namespace Image_Classification
             // 
             // Training
             // 
-            this.Training.Controls.Add(this.Convert_TrainingStatus);
+            this.Training.Controls.Add(this.Lbl_ResultClassify);
+            this.Training.Controls.Add(this.pictureBoxInput);
+            this.Training.Controls.Add(this.Txt_TrainingStatus);
             this.Training.Controls.Add(this.Txt_ConvertStatus);
             this.Training.Controls.Add(this.Txt_DirOutput);
             this.Training.Controls.Add(this.Txt_DirInput);
-            this.Training.Controls.Add(this.label2);
-            this.Training.Controls.Add(this.label1);
             this.Training.Controls.Add(this.Btn_Output);
             this.Training.Controls.Add(this.Btn_SelectInput);
             this.Training.Controls.Add(this.Btn_Convert);
-            this.Training.Controls.Add(this.Btn_SelectTrainingFolder);
+            this.Training.Controls.Add(this.Btn_SelectClassify);
             this.Training.Controls.Add(this.Btn_Training);
             this.Training.Location = new System.Drawing.Point(4, 22);
             this.Training.Name = "Training";
@@ -99,6 +100,24 @@ namespace Image_Classification
             this.Training.TabIndex = 1;
             this.Training.Text = "Training";
             this.Training.UseVisualStyleBackColor = true;
+            // 
+            // Txt_TrainingStatus
+            // 
+            this.Txt_TrainingStatus.Enabled = false;
+            this.Txt_TrainingStatus.Location = new System.Drawing.Point(94, 305);
+            this.Txt_TrainingStatus.Multiline = true;
+            this.Txt_TrainingStatus.Name = "Txt_TrainingStatus";
+            this.Txt_TrainingStatus.Size = new System.Drawing.Size(206, 52);
+            this.Txt_TrainingStatus.TabIndex = 12;
+            // 
+            // Txt_ConvertStatus
+            // 
+            this.Txt_ConvertStatus.Enabled = false;
+            this.Txt_ConvertStatus.Location = new System.Drawing.Point(94, 245);
+            this.Txt_ConvertStatus.Multiline = true;
+            this.Txt_ConvertStatus.Name = "Txt_ConvertStatus";
+            this.Txt_ConvertStatus.Size = new System.Drawing.Size(206, 52);
+            this.Txt_ConvertStatus.TabIndex = 11;
             // 
             // Txt_DirOutput
             // 
@@ -117,24 +136,6 @@ namespace Image_Classification
             this.Txt_DirInput.Name = "Txt_DirInput";
             this.Txt_DirInput.Size = new System.Drawing.Size(294, 70);
             this.Txt_DirInput.TabIndex = 8;
-            // 
-            // label2
-            // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(63, 150);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(20, 13);
-            this.label2.TabIndex = 7;
-            this.label2.Text = "Dir";
-            // 
-            // label1
-            // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(63, 43);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(20, 13);
-            this.label1.TabIndex = 6;
-            this.label1.Text = "Dir";
             // 
             // Btn_Output
             // 
@@ -166,15 +167,15 @@ namespace Image_Classification
             this.Btn_Convert.UseVisualStyleBackColor = true;
             this.Btn_Convert.Click += new System.EventHandler(this.Btn_Convert_Click);
             // 
-            // Btn_SelectTrainingFolder
+            // Btn_SelectClassify
             // 
-            this.Btn_SelectTrainingFolder.Location = new System.Drawing.Point(6, 398);
-            this.Btn_SelectTrainingFolder.Name = "Btn_SelectTrainingFolder";
-            this.Btn_SelectTrainingFolder.Size = new System.Drawing.Size(85, 23);
-            this.Btn_SelectTrainingFolder.TabIndex = 2;
-            this.Btn_SelectTrainingFolder.Text = "Select";
-            this.Btn_SelectTrainingFolder.UseVisualStyleBackColor = true;
-            this.Btn_SelectTrainingFolder.Click += new System.EventHandler(this.Btn_SelectTrainingFolder_Click);
+            this.Btn_SelectClassify.Location = new System.Drawing.Point(6, 398);
+            this.Btn_SelectClassify.Name = "Btn_SelectClassify";
+            this.Btn_SelectClassify.Size = new System.Drawing.Size(85, 23);
+            this.Btn_SelectClassify.TabIndex = 2;
+            this.Btn_SelectClassify.Text = "Select";
+            this.Btn_SelectClassify.UseVisualStyleBackColor = true;
+            this.Btn_SelectClassify.Click += new System.EventHandler(this.Btn_SelectTrainingFolder_Click);
             // 
             // Btn_Training
             // 
@@ -186,23 +187,22 @@ namespace Image_Classification
             this.Btn_Training.UseVisualStyleBackColor = true;
             this.Btn_Training.Click += new System.EventHandler(this.Btn_Training_Click);
             // 
-            // Txt_ConvertStatus
+            // pictureBoxInput
             // 
-            this.Txt_ConvertStatus.Enabled = false;
-            this.Txt_ConvertStatus.Location = new System.Drawing.Point(94, 245);
-            this.Txt_ConvertStatus.Multiline = true;
-            this.Txt_ConvertStatus.Name = "Txt_ConvertStatus";
-            this.Txt_ConvertStatus.Size = new System.Drawing.Size(206, 52);
-            this.Txt_ConvertStatus.TabIndex = 11;
+            this.pictureBoxInput.Location = new System.Drawing.Point(427, 43);
+            this.pictureBoxInput.Name = "pictureBoxInput";
+            this.pictureBoxInput.Size = new System.Drawing.Size(557, 414);
+            this.pictureBoxInput.TabIndex = 13;
+            this.pictureBoxInput.TabStop = false;
             // 
-            // Convert_TrainingStatus
+            // Lbl_ResultClassify
             // 
-            this.Convert_TrainingStatus.Enabled = false;
-            this.Convert_TrainingStatus.Location = new System.Drawing.Point(94, 305);
-            this.Convert_TrainingStatus.Multiline = true;
-            this.Convert_TrainingStatus.Name = "Convert_TrainingStatus";
-            this.Convert_TrainingStatus.Size = new System.Drawing.Size(206, 52);
-            this.Convert_TrainingStatus.TabIndex = 12;
+            this.Lbl_ResultClassify.AutoSize = true;
+            this.Lbl_ResultClassify.Location = new System.Drawing.Point(114, 403);
+            this.Lbl_ResultClassify.Name = "Lbl_ResultClassify";
+            this.Lbl_ResultClassify.Size = new System.Drawing.Size(98, 13);
+            this.Lbl_ResultClassify.TabIndex = 14;
+            this.Lbl_ResultClassify.Text = "Kết quả nhận dạng";
             // 
             // Form1
             // 
@@ -217,6 +217,7 @@ namespace Image_Classification
             this.tabControl1.ResumeLayout(false);
             this.Training.ResumeLayout(false);
             this.Training.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBoxInput)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -228,16 +229,16 @@ namespace Image_Classification
         private System.Windows.Forms.TabControl tabControl1;
         private System.Windows.Forms.TabPage Training;
         private System.Windows.Forms.Button Btn_Training;
-        private System.Windows.Forms.Button Btn_SelectTrainingFolder;
+        private System.Windows.Forms.Button Btn_SelectClassify;
         private System.Windows.Forms.TextBox Txt_DirOutput;
         private System.Windows.Forms.TextBox Txt_DirInput;
-        private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Button Btn_Output;
         private System.Windows.Forms.Button Btn_SelectInput;
         private System.Windows.Forms.Button Btn_Convert;
-        private System.Windows.Forms.TextBox Convert_TrainingStatus;
+        private System.Windows.Forms.TextBox Txt_TrainingStatus;
         private System.Windows.Forms.TextBox Txt_ConvertStatus;
+        private System.Windows.Forms.PictureBox pictureBoxInput;
+        private System.Windows.Forms.Label Lbl_ResultClassify;
     }
 }
 

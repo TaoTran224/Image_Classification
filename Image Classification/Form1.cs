@@ -22,8 +22,9 @@ namespace Image_Classification
 {
     public partial class Form1 : Form
     {
-        UInt16 IMAGE_SIZE = 28;
-
+        UInt16 IMAGE_SIZE = 128;
+        // Khai báo model KNN của OpenCvSharp.ML
+        private KNearest knn;
         string modelPath = Application.StartupPath + "\\trained_model.xml";
 
         string pathInput = "";
@@ -43,7 +44,90 @@ namespace Image_Classification
 
         private void Btn_SelectTrainingFolder_Click(object sender, EventArgs e)
         {
+            // 1. Mở hộp thoại chọn ảnh
+            OpenFileDialog ofd = new OpenFileDialog();
+            ofd.Filter = "Image Files|*.png;*.jpg;*.jpeg;*.bmp";
 
+            if (ofd.ShowDialog() == DialogResult.OK)
+            {
+                try
+                {
+                    string filePath = ofd.FileName;
+                    // Hiển thị ảnh lên PictureBox để người dùng xem
+                    pictureBoxInput.Image = Image.FromFile(filePath);
+
+                    // 2. Kiểm tra xem model đã được load chưa
+                    if (knn == null)
+                    {
+                        string modelPath = Path.Combine(Application.StartupPath, "knn_model.yml");
+                        if (File.Exists(modelPath))
+                            knn = KNearest.Load(modelPath);
+                        else
+                        {
+                            MessageBox.Show("Chưa tìm thấy file model. Vui lòng chạy Training trước!");
+                            return;
+                        }
+                    }
+
+                    // 3. Tiền xử lý ảnh giống hệt lúc Training
+                    using (Mat src = new Mat(filePath, ImreadModes.Grayscale))
+                    {
+                        using (Mat binary = new Mat())
+                        {
+                            // Nhị phân hóa (nhớ dùng cùng loại Threshold với lúc Train)
+                            Cv2.Threshold(src, binary, 0, 255, ThresholdTypes.Binary | ThresholdTypes.Otsu);
+
+                            // Resize về 28x28 và căn giữa
+                            using (Mat resized = ResizeAndCenter(binary, IMAGE_SIZE, IMAGE_SIZE))
+                            {
+                                // Chuyển về Vector 1x784 kiểu Float
+                                using (Mat floatImg = new Mat())
+                                {
+                                    resized.ConvertTo(floatImg, MatType.CV_32FC1);
+                                    Mat reshaped = floatImg.Reshape(1, 1);
+
+                                    // 4. Dự đoán
+                                    // Khai báo Mat kết quả trước
+                                    using (Mat results = new Mat())
+                                    using (Mat neighborResponses = new Mat()) // Lưu các nhãn của láng giềng gần nhất
+                                    using (Mat dists = new Mat())             // Lưu khoảng cách đến các láng giềng đó
+                                    {
+                                        // Gọi hàm FindNearest với đầy đủ tham số để lấy khoảng cách
+                                        float response = knn.FindNearest(reshaped, k: 3, results, neighborResponses, dists);
+
+                                        // Lấy giá trị khoảng cách trung bình (Distance)
+                                        // Khoảng cách càng lớn, độ tin cậy càng thấp
+                                        float distance = dists.At<float>(0, 0);
+
+                                        // THIẾT LẬP NGƯỠNG TIN CẬY (Tùy chỉnh số này theo thực tế của bạn)
+                                        // Nếu distance > threshold, coi như không nhận dạng được
+                                        float confidenceThreshold = 2000000f;
+
+                                        if (distance > confidenceThreshold)
+                                        {
+                                            Lbl_ResultClassify.Text = "Kết quả dự đoán: Không xác định (Ảnh lạ)";
+                                            Lbl_ResultClassify.ForeColor = Color.Red;
+                                        }
+                                        else
+                                        {
+                                            Lbl_ResultClassify.Text = "Kết quả dự đoán: " + response.ToString();
+                                            Lbl_ResultClassify.ForeColor = Color.Black;
+                                        }
+
+                                        // Mẹo: Bạn có thể in distance ra Console để xem con số thực tế là bao nhiêu để chỉnh ngưỡng
+                                        Console.WriteLine($"Label: {response} - Distance: {distance}");
+                                    }
+
+                                }
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Lỗi nhận dạng: " + ex.Message);
+                }
+            }
         }
 
         private void Btn_Output_Click(object sender, EventArgs e)
@@ -95,47 +179,14 @@ namespace Image_Classification
             }
         }
 
-
-        private void ProcessImages(string inputDir, string outputDir)
+        private Mat ResizeAndCenter(Mat src, int targetWidth, int targetHeight)
         {
-            // Quét tất cả file ảnh (.jpg, .png)
-            var files = Directory.GetFiles(inputDir, "*.*", SearchOption.AllDirectories);
+            // Tạo một khung đen 28x28 (Canvas)
+            // Dùng đầy đủ tên OpenCvSharp.Size để tránh lỗi CS0104
+            Mat result = new Mat(new OpenCvSharp.Size(targetWidth, targetHeight), MatType.CV_8UC1, Scalar.Black);
 
-            foreach (string file in files)
-            {
-                try
-                {
-                    // 1. Đọc ảnh Grayscale
-                    using (Mat src = new Mat(file, ImreadModes.Grayscale))
-                    using (Mat binary = new Mat())
-                    {
-                        // 2. Nhị phân hóa (Chữ trắng trên nền đen)
-                        // Dùng Otsu để tự động tìm ngưỡng tối ưu
-                        Cv2.Threshold(src, binary, 0, 255, ThresholdTypes.BinaryInv | ThresholdTypes.Otsu);
-
-                        // 3. Resize và căn giữa (Padding) để thành 28x28
-                        using (Mat finalImg = ResizeWithPadding(binary, IMAGE_SIZE, IMAGE_SIZE))
-                        {
-                            // 4. Lưu vào thư mục tương ứng với nhãn (tên thư mục cha)
-                            string label = Path.GetFileName(Path.GetDirectoryName(file));
-                            string saveDir = Path.Combine(outputDir, label);
-
-                            if (!Directory.Exists(saveDir)) Directory.CreateDirectory(saveDir);
-
-                            finalImg.SaveImage(Path.Combine(saveDir, Path.GetFileName(file)));
-                        }
-                    }
-                }
-                catch { /* Bỏ qua file lỗi hoặc không phải định dạng ảnh */ }
-            }
-        }
-
-        private Mat ResizeWithPadding(Mat src, int width, int height)
-        {
-            Mat result = new Mat(new OpenCvSharp.Size(width, height), MatType.CV_8UC1, Scalar.Black);
-
-            // Tính toán tỉ lệ để resize mà không làm méo chữ
-            double scale = Math.Min((double)width / src.Width, (double)height / src.Height);
+            // Tính tỉ lệ resize để không làm méo đặc trưng của chữ số
+            double scale = Math.Min((double)targetWidth / src.Width, (double)targetHeight / src.Height);
             int newW = (int)(src.Width * scale);
             int newH = (int)(src.Height * scale);
 
@@ -143,13 +194,16 @@ namespace Image_Classification
             {
                 Cv2.Resize(src, resized, new OpenCvSharp.Size(newW, newH));
 
-                // Tính vị trí để đặt ảnh vào giữa khung đen
-                int x = (width - newW) / 2;
-                int y = (height - newH) / 2;
+                // Tính toán tọa độ x, y để đặt ảnh vào tâm của khung 28x28
+                int x = (targetWidth - newW) / 2;
+                int y = (targetHeight - newH) / 2;
 
-                // Chép ảnh đã resize vào giữa ma trận kết quả
+                // Copy ảnh vào vùng chỉ định (ROI)
                 Rect roi = new Rect(x, y, newW, newH);
-                resized.CopyTo(new Mat(result, roi));
+                using (Mat targetRoi = new Mat(result, roi))
+                {
+                    resized.CopyTo(targetRoi);
+                }
             }
 
             return result;
@@ -157,71 +211,156 @@ namespace Image_Classification
 
         private async void Btn_Convert_Click(object sender, EventArgs e)
         {
+            Btn_Convert.Enabled = false;
+            // pathInput và pathOutput là các biến string chứa đường dẫn thư mục bạn đã chọn
             if (string.IsNullOrEmpty(pathInput) || string.IsNullOrEmpty(pathOutput))
             {
-                MessageBox.Show("Vui lòng chọn đường dẫn Input và Output!");
+                MessageBox.Show("Vui lòng chọn đầy đủ thư mục đầu vào và đầu ra!", "Thông báo");
                 return;
             }
-
-            Btn_Convert.Enabled = false;
-
             await Task.Run(() =>
             {
                 try
                 {
-                    // Lấy tất cả file ảnh, bất kể chữ hoa hay chữ thường
-                    var allFiles = Directory.GetFiles(pathInput, "*.*", SearchOption.AllDirectories)
-                                            .Where(s => s.EndsWith(".png", StringComparison.OrdinalIgnoreCase) ||
-                                                        s.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase));
+                    // Quét toàn bộ file ảnh, lọc lấy .jpg, .png, .bmp (không phân biệt hoa thường)
+                    var files = Directory.GetFiles(pathInput, "*.*", SearchOption.AllDirectories)
+                                         .Where(f => f.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase) ||
+                                                     f.EndsWith(".png", StringComparison.OrdinalIgnoreCase) ||
+                                                     f.EndsWith(".bmp", StringComparison.OrdinalIgnoreCase));
 
-                    foreach (string file in allFiles)
+                    foreach (string file in files)
                     {
-                        // Sử dụng khối using để giải phóng tài nguyên C++ ngay lập tức
+                        // Sử dụng 'using' để giải phóng bộ nhớ C++ ngay lập tức sau mỗi ảnh
                         using (Mat src = new Mat(file, ImreadModes.Grayscale))
                         {
                             if (src.Empty()) continue;
 
                             using (Mat binary = new Mat())
                             {
-                                // 1. Nhị phân hóa tự động bằng Otsu
+                                // Nhị phân hóa Otsu: tự động tách chữ trắng trên nền đen
                                 Cv2.Threshold(src, binary, 0, 255, ThresholdTypes.BinaryInv | ThresholdTypes.Otsu);
 
-                                // 2. Resize và thêm lề (Padding) để không làm méo chữ số
-                                using (Mat finalImg = ResizeAndCenter(binary, 28, 28))
+                                //Cv2.Threshold(src, binary, 0, 255, ThresholdTypes.Binary | ThresholdTypes.Otsu);
+
+                                // Gọi hàm hỗ trợ Resize và căn giữa (padding)
+                                using (Mat finalImg = ResizeAndCenter(binary, IMAGE_SIZE, IMAGE_SIZE))
                                 {
-                                    // 3. Tạo cấu trúc thư mục đích (0, 1, 2...)
+                                    // Lấy tên thư mục cha làm nhãn (0, 1, 2...)
                                     string label = Path.GetFileName(Path.GetDirectoryName(file));
                                     string saveDir = Path.Combine(pathOutput, label);
 
                                     if (!Directory.Exists(saveDir))
                                         Directory.CreateDirectory(saveDir);
 
-                                    // 4. Lưu ảnh
+                                    // Lưu ảnh đã xử lý
                                     string savePath = Path.Combine(saveDir, Path.GetFileName(file));
                                     finalImg.SaveImage(savePath);
                                 }
                             }
                         }
-                        // Ép giải phóng bộ nhớ sau mỗi ảnh để tránh lỗi Type Initializer do tràn RAM
-                        GC.Collect();
-                        GC.WaitForPendingFinalizers();
                     }
-
-                    this.Invoke(new Action(() => MessageBox.Show("Convert hoàn tất!")));
+                    this.Invoke(new Action(() => MessageBox.Show("Đã convert xong toàn bộ dữ liệu!", "Thành công")));
                 }
                 catch (Exception ex)
                 {
-                    this.Invoke(new Action(() => MessageBox.Show("Lỗi thực thi: " + ex.Message)));
+                    this.Invoke(new Action(() => MessageBox.Show("Lỗi xử lý: " + ex.Message)));
                 }
             });
 
-            btnConvert.Enabled = true;
+            Txt_ConvertStatus.Text = "Sẵn sàng";
+
+            Btn_Convert.Enabled = true;
         }
 
 
-        private void Btn_Training_Click(object sender, EventArgs e)
+        private async void Btn_Training_Click(object sender, EventArgs e)
         {
+            if (string.IsNullOrEmpty(pathOutput) || !Directory.Exists(pathOutput))
+            {
+                MessageBox.Show("Vui lòng chọn thư mục Output chứa dữ liệu đã convert!");
+                return;
+            }
 
+            Btn_Training.Enabled = false;
+            Txt_TrainingStatus.Text = "Đang huấn luyện mô hình...";
+
+            await Task.Run(() =>
+            {
+                try
+                {
+                    List<float> trainingDataList = new List<float>();
+                    List<int> labelsList = new List<int>();
+
+                    // 1. Lấy tất cả các thư mục con (mỗi thư mục là 1 nhãn: 0, 1, 2...)
+                    string[] subDirs = Directory.GetDirectories(pathOutput);
+
+                    foreach (string dir in subDirs)
+                    {
+                        string labelStr = Path.GetFileName(dir);
+                        if (!int.TryParse(labelStr, out int label)) continue;
+
+                        string[] files = Directory.GetFiles(dir, "*.png");
+
+                        foreach (string file in files)
+                        {
+                            using (Mat img = new Mat(file, ImreadModes.Grayscale))
+                            {
+                                if (img.Empty()) continue;
+
+                                // Chuyển ảnh 28x28 thành 1 hàng ngang (1x784) kiểu Float
+                                using (Mat floatImg = new Mat())
+                                {
+                                    img.ConvertTo(floatImg, MatType.CV_32FC1);
+                                    Mat reshaphed = floatImg.Reshape(1, 1);
+
+                                    // Thêm dữ liệu vào danh sách
+                                    for (int i = 0; i < reshaphed.Cols; i++)
+                                    {
+                                        trainingDataList.Add(reshaphed.At<float>(0, i));
+                                    }
+                                    labelsList.Add(label);
+                                }
+                            }
+                        }
+                    }
+
+                    if (trainingDataList.Count == 0)
+                    {
+                        this.Invoke(new Action(() => MessageBox.Show("Không tìm thấy dữ liệu để huấn luyện!")));
+                        return;
+                    }
+
+                    // 2. Chuyển dữ liệu từ List sang mảng (Array)
+                    float[] trainDataArr = trainingDataList.ToArray();
+                    int[] labelsArr = labelsList.ToArray();
+
+                    // 3. Khởi tạo Mat bằng phương thức tĩnh (Static Method) thay vì Constructor trực tiếp
+                    // trainData: số lượng hàng = số ảnh, số cột = 784 (28x28)
+                    using (Mat trainData = Mat.FromPixelData(labelsList.Count, IMAGE_SIZE * IMAGE_SIZE, MatType.CV_32FC1, trainDataArr))
+                    // trainLabels: số lượng hàng = số ảnh, số cột = 1
+                    using (Mat trainLabels = Mat.FromPixelData(labelsList.Count, 1, MatType.CV_32SC1, labelsArr))
+                    {
+                        // 3. Khởi tạo và Huấn luyện KNN
+                        if (knn != null) knn.Dispose(); // Giải phóng model cũ nếu có
+                        knn = KNearest.Create();
+
+                        knn.Train(trainData, SampleTypes.RowSample, trainLabels);
+
+                        // 4. Lưu model để dùng sau này
+                        string modelPath = Path.Combine(Application.StartupPath, "knn_model.yml");
+                        knn.Save(modelPath);
+                    }
+
+                    this.Invoke(new Action(() => MessageBox.Show($"Huấn luyện xong! Đã lưu model tại: {Application.StartupPath}")));
+                }
+                catch (Exception ex)
+                {
+                    this.Invoke(new Action(() => MessageBox.Show("Lỗi Training: " + ex.Message)));
+                }
+            });
+
+            Btn_Training.Enabled = true;
+            Txt_TrainingStatus.Text = "Đã lưu Model.";
         }
     }
 }

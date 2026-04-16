@@ -1,23 +1,9 @@
-D:\1_Project\1_Image_Classification\Image Classification\bin\Debug\x64\concrt140.dll
-D:\1_Project\1_Image_Classification\Image Classification\bin\Debug\x64\cvextern.dll
-D:\1_Project\1_Image_Classification\Image Classification\bin\Debug\x64\msvcp140.dll
-D:\1_Project\1_Image_Classification\Image Classification\bin\Debug\x64\opencv_ffmpeg343_64.dll
-D:\1_Project\1_Image_Classification\Image Classification\bin\Debug\x64\vcruntime140.dll
-D:\1_Project\1_Image_Classification\Image Classification\bin\Debug\x86\concrt140.dll
-D:\1_Project\1_Image_Classification\Image Classification\bin\Debug\x86\cvextern.dll
-D:\1_Project\1_Image_Classification\Image Classification\bin\Debug\x86\msvcp140.dll
-D:\1_Project\1_Image_Classification\Image Classification\bin\Debug\x86\opencv_ffmpeg343.dll
-D:\1_Project\1_Image_Classification\Image Classification\bin\Debug\x86\vcruntime140.dll
 D:\1_Project\1_Image_Classification\Image Classification\bin\Debug\Image Classification.exe.config
 D:\1_Project\1_Image_Classification\Image Classification\bin\Debug\Image Classification.exe
 D:\1_Project\1_Image_Classification\Image Classification\bin\Debug\Image Classification.pdb
-D:\1_Project\1_Image_Classification\Image Classification\bin\Debug\Emgu.CV.UI.dll
-D:\1_Project\1_Image_Classification\Image Classification\bin\Debug\Emgu.CV.World.dll
 D:\1_Project\1_Image_Classification\Image Classification\bin\Debug\Microsoft.WindowsAPICodePack.dll
 D:\1_Project\1_Image_Classification\Image Classification\bin\Debug\Microsoft.WindowsAPICodePack.Shell.dll
 D:\1_Project\1_Image_Classification\Image Classification\bin\Debug\ZedGraph.dll
-D:\1_Project\1_Image_Classification\Image Classification\bin\Debug\Emgu.CV.UI.xml
-D:\1_Project\1_Image_Classification\Image Classification\bin\Debug\Emgu.CV.World.xml
 D:\1_Project\1_Image_Classification\Image Classification\bin\Debug\Microsoft.WindowsAPICodePack.xml
 D:\1_Project\1_Image_Classification\Image Classification\bin\Debug\Microsoft.WindowsAPICodePack.Shell.xml
 D:\1_Project\1_Image_Classification\Image Classification\bin\Debug\ZedGraph.xml
@@ -98,3 +84,30 @@ D:\1_Project_EMIC\7_ToolTest\2_Image Classification\Image Classification\obj\Deb
 D:\1_Project_EMIC\7_ToolTest\2_Image Classification\Image Classification\obj\Debug\Image Classification.csproj.CopyComplete
 D:\1_Project_EMIC\7_ToolTest\2_Image Classification\Image Classification\obj\Debug\Image Classification.exe
 D:\1_Project_EMIC\7_ToolTest\2_Image Classification\Image Classification\obj\Debug\Image Classification.pdb
+D:\1_Project\1_Image_Classification\Image Classification\bin\Debug\dll\x64\OpenCvSharpExtern.dll
+D:\1_Project\1_Image_Classification\Image Classification\bin\Debug\dll\x64\opencv_videoio_ffmpeg4130_64.dll
+D:\1_Project\1_Image_Classification\Image Classification\bin\Debug\Microsoft.Bcl.AsyncInterfaces.dll
+D:\1_Project\1_Image_Classification\Image Classification\bin\Debug\OpenCvSharp.dll
+D:\1_Project\1_Image_Classification\Image Classification\bin\Debug\OpenCvSharp.Extensions.dll
+D:\1_Project\1_Image_Classification\Image Classification\bin\Debug\System.Buffers.dll
+D:\1_Project\1_Image_Classification\Image Classification\bin\Debug\System.Drawing.Common.dll
+D:\1_Project\1_Image_Classification\Image Classification\bin\Debug\System.Memory.dll
+D:\1_Project\1_Image_Classification\Image Classification\bin\Debug\System.Numerics.Vectors.dll
+D:\1_Project\1_Image_Classification\Image Classification\bin\Debug\System.Runtime.CompilerServices.Unsafe.dll
+D:\1_Project\1_Image_Classification\Image Classification\bin\Debug\System.Text.Encodings.Web.dll
+D:\1_Project\1_Image_Classification\Image Classification\bin\Debug\System.Text.Json.dll
+D:\1_Project\1_Image_Classification\Image Classification\bin\Debug\System.Threading.Tasks.Extensions.dll
+D:\1_Project\1_Image_Classification\Image Classification\bin\Debug\System.ValueTuple.dll
+D:\1_Project\1_Image_Classification\Image Classification\bin\Debug\Microsoft.Bcl.AsyncInterfaces.xml
+D:\1_Project\1_Image_Classification\Image Classification\bin\Debug\OpenCvSharp.xml
+D:\1_Project\1_Image_Classification\Image Classification\bin\Debug\OpenCvSharp.Extensions.xml
+D:\1_Project\1_Image_Classification\Image Classification\bin\Debug\System.Buffers.xml
+D:\1_Project\1_Image_Classification\Image Classification\bin\Debug\System.Drawing.Common.pdb
+D:\1_Project\1_Image_Classification\Image Classification\bin\Debug\System.Drawing.Common.xml
+D:\1_Project\1_Image_Classification\Image Classification\bin\Debug\System.Memory.xml
+D:\1_Project\1_Image_Classification\Image Classification\bin\Debug\System.Numerics.Vectors.xml
+D:\1_Project\1_Image_Classification\Image Classification\bin\Debug\System.Runtime.CompilerServices.Unsafe.xml
+D:\1_Project\1_Image_Classification\Image Classification\bin\Debug\System.Text.Encodings.Web.xml
+D:\1_Project\1_Image_Classification\Image Classification\bin\Debug\System.Text.Json.xml
+D:\1_Project\1_Image_Classification\Image Classification\bin\Debug\System.Threading.Tasks.Extensions.xml
+D:\1_Project\1_Image_Classification\Image Classification\bin\Debug\System.ValueTuple.xml
