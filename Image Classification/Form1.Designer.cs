@@ -175,7 +175,7 @@ namespace Image_Classification
             this.Btn_SelectClassify.TabIndex = 2;
             this.Btn_SelectClassify.Text = "Select";
             this.Btn_SelectClassify.UseVisualStyleBackColor = true;
-            this.Btn_SelectClassify.Click += new System.EventHandler(this.Btn_SelectTrainingFolder_Click);
+            this.Btn_SelectClassify.Click += new System.EventHandler(this.Btn_SelectClassify_Click);
             // 
             // Btn_Training
             // 

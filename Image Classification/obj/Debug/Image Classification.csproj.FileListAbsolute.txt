@@ -111,3 +111,4 @@ D:\1_Project\1_Image_Classification\Image Classification\bin\Debug\System.Text.E
 D:\1_Project\1_Image_Classification\Image Classification\bin\Debug\System.Text.Json.xml
 D:\1_Project\1_Image_Classification\Image Classification\bin\Debug\System.Threading.Tasks.Extensions.xml
 D:\1_Project\1_Image_Classification\Image Classification\bin\Debug\System.ValueTuple.xml
+D:\1_Project_EMIC\7_ToolTest\2_Image Classification\Image Classification\obj\Debug\Image Classification.csproj.AssemblyReference.cache
