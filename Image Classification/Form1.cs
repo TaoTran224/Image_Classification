@@ -13,6 +13,8 @@ using OpenCvSharp.ML;
 using OpenCvSharp.Extensions;
 using System.Drawing.Imaging;
 using Microsoft.WindowsAPICodePack.Dialogs;
+using Basler.Pylon;
+using System.Threading;
 
 using Size = OpenCvSharp.Size;
 using Point = OpenCvSharp.Point;
@@ -22,175 +24,89 @@ namespace Image_Classification
 {
     public partial class Form1 : Form
     {
-        UInt16 IMAGE_SIZE = 28;
-        // Khai báo model KNN của OpenCvSharp.ML
-        private KNearest knn;
-        private SVM svm;
-        string modelPath = Application.StartupPath + "\\trained_model.xml";
+        private Camera camera = null;
+        private PixelDataConverter converter = new PixelDataConverter();
+        private bool isStreaming = false;  // Trạng thái nút Live Video
+        private bool isCapturing = false;  // Trạng thái khóa để chụp ảnh tĩn
+        //basler 958x685
+        UInt16 IMAGE_SIZE = 480;
+        //private SVM svm;
+        //string modelPath = Application.StartupPath + "\\trained_model.xml";
 
         string pathInput = "";
         string pathOutput = "";
-        string pathPixelData = "";
+        //string pathPixelData = "";
 
         public Form1()
         {
             InitializeComponent();
-
         }
-
         private void Form1_Load(object sender, EventArgs e)
         {
-
+            InitCamera();
         }
-
-        private async void Btn_SelectClassify_Click(object sender, EventArgs e)
+        // Đây là phương thức xử lý sự kiện mỗi khi camera có khung hình mới
+        private void OnImageGrabbed(object sender, ImageGrabbedEventArgs e)
         {
-            // 1. Chọn thư mục chứa ảnh cần nhận dạng
-            //CommonOpenFileDialog dialog = new CommonOpenFileDialog();
-            //dialog.IsFolderPicker = true;
-            //if (dialog.ShowDialog() != CommonFileDialogResult.Ok) return;
-
-            //string folderPath = dialog.FileName;
-            //string[] files = Directory.GetFiles(folderPath, "*.*")
-            //                  .Where(s => s.EndsWith(".PNG") || s.EndsWith(".png") || s.EndsWith(".jpg") || s.EndsWith(".jpeg")).ToArray();
-
-            //if (files.Length == 0)
-            //{
-            //    MessageBox.Show("Thư mục không có ảnh!");
-            //    return;
-            //}
-
-            //// 2. Kiểm tra model SVM
-            //if (svm == null)
-            //{
-            //    string modelPath = Path.Combine(Application.StartupPath, "svm_model.yml");
-            //    if (File.Exists(modelPath)) svm = SVM.Load(modelPath);
-            //    else { MessageBox.Show("Hãy Train SVM trước!"); return; }
-            //}
-
-            //Btn_SelectInput.Enabled = false;
-            //Lbl_ResultClassify.Text = "Đang quét dữ liệu...";
-
-            //// 3. Chạy xử lý hàng loạt trên Task riêng để không treo giao diện
-            //await Task.Run(() =>
-            //{
-            //    int count = 0;
-            //    foreach (string file in files)
-            //    {
-            //        try
-            //        {
-            //            using (Mat src = new Mat(file, ImreadModes.Grayscale))
-            //            using (Mat binary = new Mat())
-            //            {
-            //                // Tiền xử lý (Đảm bảo giống lúc Train)
-            //                Cv2.Threshold(src, binary, 0, 255, ThresholdTypes.Binary | ThresholdTypes.Otsu);
-
-            //                using (Mat resized = ResizeAndCenter(binary, 28, 28))
-            //                using (Mat floatImg = new Mat())
-            //                {
-            //                    resized.ConvertTo(floatImg, MatType.CV_32FC1);
-            //                    using (Mat reshaped = floatImg.Reshape(1, 1))
-            //                    {
-            //                        // 1. SVM Dự đoán nhãn (0, 1, 2...)
-            //                        float result = svm.Predict(reshaped);
-
-            //                        // 2. Lấy giá trị thô để xác định độ tin cậy (Confidence)
-            //                        // StatModel.Flags.RawOutput giúp lấy khoảng cách tới siêu phẳng
-            //                        Mat decisionFunc = new Mat();
-            //                        svm.Predict(reshaped, decisionFunc, StatModel.Flags.RawOutput);
-
-            //                        // Giá trị confidence: Càng xa 0 càng tin cậy. 
-            //                        // Nếu trị tuyệt đối quá nhỏ (< 0.5 chẳng hạn) là ảnh đang nằm ở vùng tranh chấp/lạ.
-            //                        double confidence = Math.Abs(decisionFunc.At<double>(0, 0));
-
-            //                        // 3. Đặt ngưỡng xác định ảnh lạ
-            //                        // Bạn cần in giá trị này ra Console vài lần để chọn ngưỡng phù hợp (ví dụ 0.8)
-            //                        double threshold = 0.1;
-
-            //                        string fileName = Path.GetFileName(file);
-            //                        if (confidence < threshold)
-            //                        {
-            //                            Console.WriteLine($"File: {fileName} --> KẾT QUẢ: KHÔNG XÁC ĐỊNH (Ảnh lạ - Conf: {confidence:F2})");
-            //                        }
-            //                        else
-            //                        {
-            //                            Console.WriteLine($"File: {fileName} --> Dự đoán: {result} (Conf: {confidence:F2})");
-            //                        }
-            //                    }
-            //                }
-            //            }
-            //        }
-            //        catch { /* Bỏ qua file lỗi */ }
-
-            //        count++;
-            //        this.Invoke(new Action(() => Lbl_ResultClassify.Text = $"Đang xử lý: {count}/{files.Length}"));
-            //    }
-            //});
-
-            //Btn_SelectInput.Enabled = true;
-            //Lbl_ResultClassify.Text = "Hoàn thành nhận dạng hàng loạt!";
-            //MessageBox.Show($"Đã xử lý xong {files.Length} ảnh. Kiểm tra kết quả trong cửa sổ Output.");
-
-
-            // 1. Chọn ảnh từ máy tính
-            OpenFileDialog ofd = new OpenFileDialog();
-            ofd.Filter = "Image Files|*.png;*.jpg;*.jpeg;*.bmp";
-
-            if (ofd.ShowDialog() == DialogResult.OK)
+            // Nếu đang chụp ảnh tĩnh, thoát ngay để nhường luồng cho nút bấm
+            if (isCapturing)
             {
-                try
+                e.GrabResult?.Dispose();
+                return;
+            }
+
+            try
+            {
+                using (IGrabResult result = e.GrabResult)
                 {
-                    string filePath = ofd.FileName;
-                    pictureBoxInput.Image = Image.FromFile(filePath);
-
-                    // 2. Kiểm tra/Nạp model SVM
-                    if (svm == null)
+                    if (result != null && result.GrabSucceeded && isStreaming)
                     {
-                        string modelPath = Path.Combine(Application.StartupPath, "svm_model.yml");
-                        if (File.Exists(modelPath))
-                            svm = SVM.Load(modelPath);
-                        else
+                        Bitmap bitmap = new Bitmap(result.Width, result.Height, PixelFormat.Format32bppRgb);
+                        BitmapData bmd = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.WriteOnly, bitmap.PixelFormat);
+                        converter.OutputPixelFormat = PixelType.BGRA8packed;
+                        converter.Convert(bmd.Scan0, bmd.Stride * bitmap.Height, result);
+                        bitmap.UnlockBits(bmd);
+
+                        Pic_Box.BeginInvoke(new MethodInvoker(() =>
                         {
-                            MessageBox.Show("Chưa tìm thấy file svm_model.yml. Hãy chạy Training trước!");
-                            return;
-                        }
+                            Pic_Box.Image?.Dispose();
+                            Pic_Box.Image = bitmap;
+                        }));
                     }
-
-                    // 3. Tiền xử lý ảnh (Phải khớp hoàn toàn với lúc Train)
-                    using (Mat src = new Mat(filePath, ImreadModes.Grayscale))
-                    using (Mat binary = new Mat())
-                    {
-                        // Nhị phân hóa (Dùng BinaryInv để lấy chữ trắng nền đen giống chuẩn)
-                        Cv2.Threshold(src, binary, 0, 255, ThresholdTypes.BinaryInv | ThresholdTypes.Otsu);
-
-                        // Resize và căn giữa về 28x28 (IMAGE_SIZE = 28)
-                        using (Mat resized = ResizeAndCenter(binary, 28, 28))
-                        using (Mat floatImg = new Mat())
-                        {
-                            // Chuyển sang Float 32-bit
-                            resized.ConvertTo(floatImg, MatType.CV_32FC1);
-
-                            // Trải phẳng thành vector 1 hàng x 784 cột
-                            using (Mat reshaped = floatImg.Reshape(1, 1))
-                            {
-                                // 4. SVM Dự đoán
-                                // Khác với KNN, SVM Predict trả về kết quả rất gọn gàng
-                                float result = svm.Predict(reshaped);
-
-                                // 5. Hiển thị kết quả lên giao diện
-                                Lbl_ResultClassify.Text = "SVM Dự đoán: " + result.ToString();
-                                Lbl_ResultClassify.ForeColor = Color.Blue;
-
-                                MessageBox.Show($"Máy tính dự đoán đây là số: {result}", "Kết quả");
-                            }
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show("Lỗi nhận dạng SVM: " + ex.Message);
                 }
             }
+            catch
+            {
+                /* Xử lý lỗi ngầm định */
+                MessageBox.Show("ERROR Lỗi khởi tạo Camera: ");
+            }
+        }
+
+        private void InitCamera()
+        {
+            try
+            {
+                camera = new Camera();
+                camera.Open();
+
+                // Thiết lập chế độ ảnh trắng đen Mono8 ngay từ đầu
+                camera.Parameters[PLCamera.PixelFormat].TrySetValue(PLCamera.PixelFormat.Mono8);
+                camera.Parameters[PLCamera.Width].SetValue(958);
+                camera.Parameters[PLCamera.Height].SetValue(685);
+                camera.Parameters[PLCamera.CenterX].TrySetValue(true);
+                camera.Parameters[PLCamera.CenterY].TrySetValue(true);
+
+                // Đăng ký sự kiện lấy ảnh
+                camera.StreamGrabber.ImageGrabbed += OnImageGrabbed;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi khởi tạo Camera: " + ex.Message);
+            }
+        }
+
+        private void Btn_SelectClassify_Click(object sender, EventArgs e)
+        {
         }
 
         private void Btn_Output_Click(object sender, EventArgs e)
@@ -246,8 +162,8 @@ namespace Image_Classification
         {
             // Tạo một khung đen 28x28 (Canvas)
             // Dùng đầy đủ tên OpenCvSharp.Size để tránh lỗi CS0104
-            //Mat result = new Mat(new OpenCvSharp.Size(targetWidth, targetHeight), MatType.CV_8UC1, Scalar.Black);
-            Mat result = new Mat(new OpenCvSharp.Size(targetWidth, targetHeight), MatType.CV_8UC1, Scalar.White);
+            Mat result = new Mat(new OpenCvSharp.Size(targetWidth, targetHeight), MatType.CV_8UC1, Scalar.Black);
+            //Mat result = new Mat(new OpenCvSharp.Size(targetWidth, targetHeight), MatType.CV_8UC1, Scalar.White);
             // Tính tỉ lệ resize để không làm méo đặc trưng của chữ số
             double scale = Math.Min((double)targetWidth / src.Width, (double)targetHeight / src.Height);
             int newW = (int)(src.Width * scale);
@@ -336,88 +252,115 @@ namespace Image_Classification
         }
 
 
-        private async void Btn_Training_Click(object sender, EventArgs e)
+        private void Btn_Training_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrEmpty(pathOutput) || !Directory.Exists(pathOutput))
+
+        }
+
+        private void Btn_RecVideo_Click(object sender, EventArgs e)
+        {
+            try
             {
-                MessageBox.Show("Vui lòng chọn thư mục Output chứa dữ liệu đã convert!");
+                if (!isStreaming)
+                {
+                    isStreaming = true;
+                    isCapturing = false;
+                    Btn_RecVideo.Text = "Stop Video";
+                    if (!camera.StreamGrabber.IsGrabbing)
+                        camera.StreamGrabber.Start(GrabStrategy.LatestImages, GrabLoop.ProvidedByStreamGrabber);
+                }
+                else
+                {
+                    isStreaming = false;
+                    Btn_RecVideo.Text = "Start Video";
+                    camera.StreamGrabber.Stop();
+                }
+            }
+            catch (Exception ex) { MessageBox.Show(ex.Message); }
+        }
+
+        private void Btn_RecImage_Click(object sender, EventArgs e)
+        {
+            // 1. Kiểm tra an toàn để tránh lỗi Null
+            if (Pic_Box.Image == null)
+            {
+                MessageBox.Show("Không có dữ liệu ảnh. Hãy bật Video trước!", "Thông báo");
                 return;
             }
 
-            Btn_Training.Enabled = false;
-            Txt_TrainingStatus.Text = "Đang huấn luyện mô hình...";
-
-            await Task.Run(() =>
+            try
             {
-                try
+                int w = Pic_Box.Image.Width;
+                int h = Pic_Box.Image.Height;
+
+                if (MessageBox.Show($"Lưu ảnh Mono8 ({w}x{h})?", "Xác nhận", MessageBoxButtons.YesNo) == DialogResult.Yes)
                 {
-                    // KHAI BÁO TẠI ĐÂY để đảm bảo logic không bị lỗi context
-                    List<float> trainingDataList = new List<float>();
-                    List<int> labelsList = new List<int>();
-
-                    string[] subDirs = Directory.GetDirectories(pathOutput);
-
-                    foreach (string dir in subDirs)
+                    using (SaveFileDialog sfd = new SaveFileDialog { Filter = "Bitmap Image|*.bmp" })
                     {
-                        string labelStr = Path.GetFileName(dir);
-                        if (!int.TryParse(labelStr, out int label)) continue;
-
-                        string[] files = Directory.GetFiles(dir, "*.png");
-                        foreach (string file in files)
+                        if (sfd.ShowDialog() == DialogResult.OK)
                         {
-                            using (Mat img = new Mat(file, ImreadModes.Grayscale))
+                            // Dùng lock để tránh việc luồng OnImageGrabbed thay đổi ảnh khi đang copy
+                            lock (Pic_Box)
                             {
-                                if (img.Empty()) continue;
-                                using (Mat floatImg = new Mat())
+                                // Bước A: Tạo một Bitmap trung gian từ PictureBox
+                                using (Bitmap tempBmp = new Bitmap(Pic_Box.Image))
                                 {
-                                    img.ConvertTo(floatImg, MatType.CV_32FC1);
-                                    Mat reshaped = floatImg.Reshape(1, 1);
+                                    // Bước B: Tạo Bitmap 8-bit đích
+                                    Bitmap bmp8bit = new Bitmap(w, h, PixelFormat.Format8bppIndexed);
 
-                                    // Nạp dữ liệu vào List
-                                    // Cách sửa lỗi CS1501: Copy trực tiếp dữ liệu từ Mat vào mảng float
-                                    float[] pixels = new float[reshaped.Cols];
-                                    System.Runtime.InteropServices.Marshal.Copy(reshaped.Data, pixels, 0, pixels.Length);
-                                    trainingDataList.AddRange(pixels);
+                                    // Bước C: Thiết lập Bảng màu (Sửa lỗi Index was outside the bounds)
+                                    ColorPalette pal = bmp8bit.Palette;
+                                    if (pal.Entries.Length < 256)
+                                    {
+                                        // Nếu hệ thống trả về palette thiếu, ta không lưu được
+                                        throw new Exception("Hệ thống không khởi tạo đủ bảng màu 256.");
+                                    }
 
-                                    labelsList.Add(label);
+                                    for (int i = 0; i < 256; i++)
+                                    {
+                                        pal.Entries[i] = Color.FromArgb(i, i, i);
+                                    }
+                                    bmp8bit.Palette = pal; // Gán ngược lại palette đã chỉnh sửa
+
+                                    // Bước D: Copy dữ liệu điểm ảnh (Dùng LockBits để an toàn và nhanh)
+                                    BitmapData srcData = tempBmp.LockBits(new Rectangle(0, 0, w, h), ImageLockMode.ReadOnly, PixelFormat.Format32bppRgb);
+                                    BitmapData destData = bmp8bit.LockBits(new Rectangle(0, 0, w, h), ImageLockMode.WriteOnly, PixelFormat.Format8bppIndexed);
+
+                                    unsafe
+                                    {
+                                        byte* pSrc = (byte*)srcData.Scan0;
+                                        byte* pDest = (byte*)destData.Scan0;
+
+                                        for (int y = 0; y < h; y++)
+                                        {
+                                            for (int x = 0; x < w; x++)
+                                            {
+                                                // Lấy kênh Red (hoặc Green/Blue vì là ảnh xám) làm giá trị 8-bit
+                                                // pSrc[0]=B, pSrc[1]=G, pSrc[2]=R, pSrc[3]=A
+                                                pDest[x] = pSrc[x * 4 + 2];
+                                            }
+                                            pSrc += srcData.Stride;
+                                            pDest += destData.Stride;
+                                        }
+                                    }
+
+                                    bmp8bit.UnlockBits(destData);
+                                    tempBmp.UnlockBits(srcData);
+
+                                    // Bước E: Lưu file
+                                    bmp8bit.Save(sfd.FileName, ImageFormat.Bmp);
+                                    bmp8bit.Dispose();
                                 }
                             }
+                            MessageBox.Show("Lưu thành công! Dung lượng file ~644KB.");
                         }
                     }
-
-                    if (trainingDataList.Count == 0) return;
-
-                    // Chuyển sang Mat để Train
-                    float[] trainDataArr = trainingDataList.ToArray();
-                    int[] labelsArr = labelsList.ToArray();
-
-                    using (Mat trainData = Mat.FromPixelData(labelsList.Count, 784, MatType.CV_32FC1, trainDataArr))
-                    using (Mat trainLabels = Mat.FromPixelData(labelsList.Count, 1, MatType.CV_32SC1, labelsArr))
-                    {
-                        if (svm != null) svm.Dispose();
-                        svm = SVM.Create();
-
-                        // Cấu hình SVM - Đây là lý do SVM chính xác hơn KNN
-                        svm.Type = SVM.Types.CSvc;
-                        svm.KernelType = SVM.KernelTypes.Rbf; // Kernel RBF giúp phân loại cực tốt
-                        svm.Gamma = 0.01;
-                        svm.C = 10;
-                        svm.TermCriteria = new TermCriteria(CriteriaTypes.MaxIter, 100, 1e-6);
-
-                        svm.Train(trainData, SampleTypes.RowSample, trainLabels);
-                        svm.Save("svm_model.yml");
-                    }
-
-                    this.Invoke(new Action(() => MessageBox.Show("Đã huấn luyện xong SVM!")));
                 }
-                catch (Exception ex)
-                {
-                    this.Invoke(new Action(() => MessageBox.Show("Lỗi: " + ex.Message)));
-                }
-            });
-
-            Btn_Training.Enabled = true;
-            Txt_TrainingStatus.Text = "Đã lưu Model.";
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi lưu ảnh: " + ex.Message);
+            }
         }
     }
 }
