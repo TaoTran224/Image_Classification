@@ -56,6 +56,7 @@ namespace Image_Classification
         private void Form1_Load(object sender, EventArgs e)
         {
             InitCamera();
+            Pic_Box.SizeMode = PictureBoxSizeMode.Zoom;
         }
         // Đây là phương thức xử lý sự kiện mỗi khi camera có khung hình mới
         private void OnImageGrabbed(object sender, ImageGrabbedEventArgs e)
@@ -592,5 +593,83 @@ namespace Image_Classification
             }
         }
 
+        private void Btn_Detect_Click(object sender, EventArgs e)
+        {
+            if (camera == null || !camera.StreamGrabber.IsGrabbing)
+            {
+                MessageBox.Show("Vui lòng bật Camera trước!");
+                return;
+            }
+
+            try
+            {
+                // 1. Chụp ảnh hiện tại từ PictureBox
+                Bitmap snapshot;
+                lock (Pic_Box)
+                {
+                    if (Pic_Box.Image == null) return;
+                    snapshot = new Bitmap(Pic_Box.Image);
+                }
+
+                using (Mat mat = OpenCvSharp.Extensions.BitmapConverter.ToMat(snapshot))
+                using (Mat gray = new Mat())
+                {
+                    // 2. Tiền xử lý OpenCV
+                    Cv2.CvtColor(mat, gray, ColorConversionCodes.BGR2GRAY);
+                    Cv2.GaussianBlur(gray, gray, new OpenCvSharp.Size(9, 9), 2, 2);
+
+                    // 3. Tìm các vòng tròn
+                    var circles = Cv2.HoughCircles(gray, HoughModes.Gradient, 1, 100, 100, 20, 10, 500);
+
+                    // 4. Cập nhật danh sách để vẽ vòng tròn đỏ lên Pic_Box
+                    lock (detectedCircles)
+                    {
+                        detectedCircles.Clear();
+                        detectedCircles.AddRange(circles);
+                    }
+                    Pic_Box.Invalidate(); // Lệnh vẽ lại
+
+                    // 5. Chuẩn bị nội dung cho MessageBox và TextBox
+                    StringBuilder sbText = new StringBuilder();
+                    StringBuilder sbMsg = new StringBuilder(); // Nội dung riêng cho MessageBox
+
+                    if (circles.Length > 0)
+                    {
+                        sbMsg.AppendLine($"Đã phát hiện {circles.Length} vật thể:\n");
+
+                        for (int i = 0; i < circles.Length; i++)
+                        {
+                            float x = circles[i].Center.X;
+                            float y = circles[i].Center.Y;
+                            float r = circles[i].Radius;
+
+                            // Định dạng chuỗi hiển thị
+                            string line = $"Vật thể {i + 1}: Tâm({x:F1}, {y:F1}), Bán kính: {r:F1}";
+
+                            sbText.AppendLine(line);
+                            sbMsg.AppendLine(line);
+                        }
+                    }
+                    else
+                    {
+                        sbMsg.AppendLine("Không tìm thấy vật thể hình tròn nào.");
+                        sbText.AppendLine("No circles detected.");
+                    }
+
+                    // Hiển thị kết quả vào TextBox
+                    Tbox_coordinates.Text = sbText.ToString();
+
+                    // 6. HIỂN THỊ MESSAGEBOX THEO YÊU CẦU
+                    // Show thông tin tọa độ và bán kính ngay lập tức
+                    MessageBox.Show(sbMsg.ToString(), "Kết quả đo lường", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+
+                snapshot.Dispose();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi: " + ex.Message);
+            }
+        }
     }
 }

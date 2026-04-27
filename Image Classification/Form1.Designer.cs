@@ -33,6 +33,7 @@ namespace Image_Classification
             this.Classify = new System.Windows.Forms.TabPage();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.Training = new System.Windows.Forms.TabPage();
+            this.Lbl_ActualFPS = new System.Windows.Forms.Label();
             this.Tbox_coordinates = new System.Windows.Forms.TextBox();
             this.Btn_AutoTrack = new System.Windows.Forms.Button();
             this.Btn_Capture = new System.Windows.Forms.Button();
@@ -49,7 +50,7 @@ namespace Image_Classification
             this.Btn_Convert = new System.Windows.Forms.Button();
             this.Btn_SelectClassify = new System.Windows.Forms.Button();
             this.Btn_Training = new System.Windows.Forms.Button();
-            this.Lbl_ActualFPS = new System.Windows.Forms.Label();
+            this.Btn_Detect = new System.Windows.Forms.Button();
             this.Classify.SuspendLayout();
             this.tabControl1.SuspendLayout();
             this.Training.SuspendLayout();
@@ -88,6 +89,7 @@ namespace Image_Classification
             // 
             // Training
             // 
+            this.Training.Controls.Add(this.Btn_Detect);
             this.Training.Controls.Add(this.Lbl_ActualFPS);
             this.Training.Controls.Add(this.Tbox_coordinates);
             this.Training.Controls.Add(this.Btn_AutoTrack);
@@ -113,10 +115,19 @@ namespace Image_Classification
             this.Training.Text = "Training";
             this.Training.UseVisualStyleBackColor = true;
             // 
+            // Lbl_ActualFPS
+            // 
+            this.Lbl_ActualFPS.AutoSize = true;
+            this.Lbl_ActualFPS.Location = new System.Drawing.Point(450, 769);
+            this.Lbl_ActualFPS.Name = "Lbl_ActualFPS";
+            this.Lbl_ActualFPS.Size = new System.Drawing.Size(27, 13);
+            this.Lbl_ActualFPS.TabIndex = 21;
+            this.Lbl_ActualFPS.Text = "FPS";
+            // 
             // Tbox_coordinates
             // 
             this.Tbox_coordinates.Enabled = false;
-            this.Tbox_coordinates.Location = new System.Drawing.Point(817, 719);
+            this.Tbox_coordinates.Location = new System.Drawing.Point(841, 719);
             this.Tbox_coordinates.Multiline = true;
             this.Tbox_coordinates.Name = "Tbox_coordinates";
             this.Tbox_coordinates.Size = new System.Drawing.Size(400, 96);
@@ -124,7 +135,7 @@ namespace Image_Classification
             // 
             // Btn_AutoTrack
             // 
-            this.Btn_AutoTrack.Location = new System.Drawing.Point(691, 748);
+            this.Btn_AutoTrack.Location = new System.Drawing.Point(564, 764);
             this.Btn_AutoTrack.Name = "Btn_AutoTrack";
             this.Btn_AutoTrack.Size = new System.Drawing.Size(85, 23);
             this.Btn_AutoTrack.TabIndex = 19;
@@ -134,7 +145,7 @@ namespace Image_Classification
             // 
             // Btn_Capture
             // 
-            this.Btn_Capture.Location = new System.Drawing.Point(691, 707);
+            this.Btn_Capture.Location = new System.Drawing.Point(692, 723);
             this.Btn_Capture.Name = "Btn_Capture";
             this.Btn_Capture.Size = new System.Drawing.Size(85, 23);
             this.Btn_Capture.TabIndex = 17;
@@ -144,7 +155,7 @@ namespace Image_Classification
             // 
             // Btn_RecImage
             // 
-            this.Btn_RecImage.Location = new System.Drawing.Point(563, 707);
+            this.Btn_RecImage.Location = new System.Drawing.Point(564, 723);
             this.Btn_RecImage.Name = "Btn_RecImage";
             this.Btn_RecImage.Size = new System.Drawing.Size(85, 23);
             this.Btn_RecImage.TabIndex = 16;
@@ -154,7 +165,7 @@ namespace Image_Classification
             // 
             // Btn_RecVideo
             // 
-            this.Btn_RecVideo.Location = new System.Drawing.Point(452, 707);
+            this.Btn_RecVideo.Location = new System.Drawing.Point(453, 723);
             this.Btn_RecVideo.Name = "Btn_RecVideo";
             this.Btn_RecVideo.Size = new System.Drawing.Size(85, 23);
             this.Btn_RecVideo.TabIndex = 15;
@@ -266,14 +277,15 @@ namespace Image_Classification
             this.Btn_Training.UseVisualStyleBackColor = true;
             this.Btn_Training.Click += new System.EventHandler(this.Btn_Training_Click);
             // 
-            // Lbl_ActualFPS
+            // Btn_Detect
             // 
-            this.Lbl_ActualFPS.AutoSize = true;
-            this.Lbl_ActualFPS.Location = new System.Drawing.Point(449, 753);
-            this.Lbl_ActualFPS.Name = "Lbl_ActualFPS";
-            this.Lbl_ActualFPS.Size = new System.Drawing.Size(27, 13);
-            this.Lbl_ActualFPS.TabIndex = 21;
-            this.Lbl_ActualFPS.Text = "FPS";
+            this.Btn_Detect.Location = new System.Drawing.Point(692, 764);
+            this.Btn_Detect.Name = "Btn_Detect";
+            this.Btn_Detect.Size = new System.Drawing.Size(85, 23);
+            this.Btn_Detect.TabIndex = 22;
+            this.Btn_Detect.Text = "Detect";
+            this.Btn_Detect.UseVisualStyleBackColor = true;
+            this.Btn_Detect.Click += new System.EventHandler(this.Btn_Detect_Click);
             // 
             // Form1
             // 
@@ -316,6 +328,7 @@ namespace Image_Classification
         private System.Windows.Forms.Button Btn_AutoTrack;
         private System.Windows.Forms.TextBox Tbox_coordinates;
         private System.Windows.Forms.Label Lbl_ActualFPS;
+        private System.Windows.Forms.Button Btn_Detect;
     }
 }
 
