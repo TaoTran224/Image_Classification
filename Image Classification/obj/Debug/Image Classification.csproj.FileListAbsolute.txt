@@ -25,7 +25,6 @@ D:\1_Project\1_Image_Classification\Image Classification\obj\Debug\Image_Classif
 D:\1_Project\1_Image_Classification\Image Classification\obj\Debug\Image_Classification.Properties.Resources.resources
 D:\1_Project\1_Image_Classification\Image Classification\obj\Debug\Image Classification.csproj.GenerateResource.cache
 D:\1_Project\1_Image_Classification\Image Classification\obj\Debug\Image Classification.csproj.CoreCompileInputs.cache
-D:\1_Project\1_Image_Classification\Image Classification\obj\Debug\Image Classification.csproj.CopyComplete
 D:\1_Project\1_Image_Classification\Image Classification\obj\Debug\Image Classification.exe
 D:\1_Project\1_Image_Classification\Image Classification\obj\Debug\Image Classification.pdb
 D:\1_Project_EMIC\7_ToolTest\2_Image Classification\Image Classification\bin\Debug\dll\x64\OpenCvSharpExtern.dll
@@ -114,3 +113,4 @@ D:\1_Project\1_Image_Classification\Image Classification\bin\Debug\System.ValueT
 D:\1_Project_EMIC\7_ToolTest\2_Image Classification\Image Classification\obj\Debug\Image Classification.csproj.AssemblyReference.cache
 D:\1_Project\1_Image_Classification\Image Classification\bin\Debug\Basler.Pylon.dll
 D:\1_Project\1_Image_Classification\Image Classification\bin\Debug\Basler.Pylon.xml
+D:\1_Project\1_Image_Classification\Image Classification\obj\Debug\Image Cl.A7D261C2.Up2Date
